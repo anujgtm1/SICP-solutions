@@ -186,4 +186,67 @@
 		null-value
 		(iter (next a) (combiner (term a) result))))
 
+; 1.33 Filtered accumulate
+(define (filter-accumulate filter combiner null-value term a next b)
+	(if (> a b)
+	null-value
+	(if (filter a)
+	(combiner (term a) (filter-accumulate filter combiner null-value term (next a) next b))
+	(filter-accumulate filter combiner null-value null-value term (next a) next b))))
 
+; Alternate
+(define (filter-accumulate filter combiner null-value term a next b)
+	(if (> a b)
+	null-value
+	(combiner 
+		(if (filter a) (term a) null-value)
+		(filter-accumulate filter combiner null-value term (next a) b))))
+
+;a Sum of square of prime numbers from a to b
+(define (sum-square-prime a b)
+	(filter-accumulate prime? + 0 square a inc b))
+
+(define (relative-prime-product n)
+	(define (relatively-prime? i)
+    	(define (gcd a b)
+      		(if (= b 0)
+          	a
+          	(gcd b (remainder a b))))
+    	(= (gcd i n) 1))
+	(filtered-accumulate relatively-prime? * 1 identity 0 inc n))
+
+; 1.34 
+; (f f) => (f (f 2)) => (f (2 2))
+; (2 2) is not callable
+
+
+
+; 1.40 
+(define (cubic a b c) 
+	(lambda (x) (+ (* a x x) (* b x) c)))
+
+; 1.41
+(define (double f)
+	(lambda (x) (f (f x))))
+
+
+; 1.42 Compose function
+(define (compose f g)
+	(lambda (x) (f (g x))))
+
+; 1.43 Apply same function n-times
+(define (n-times f n)
+	(define (iter a result)
+		(if (> a n)
+		result
+		(iter a (f a))))
+	(lambda (x) (iter 1 x)))
+
+
+; 1.46 iterative-improve
+
+(define (iterative-improve good-enough? improve)
+	(lambda (guess)
+	(if (good-enough? guess)
+		guess
+		((iterative-improve good-enough? improve) (improve guess)))))
